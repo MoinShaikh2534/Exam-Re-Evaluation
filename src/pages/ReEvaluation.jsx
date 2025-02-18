@@ -57,9 +57,9 @@ const ReEvaluation = () => {
         </div>
         <div className="mb-4">
           <label className="block text-left mb-2 text-gray-700">Subjects:</label>
-          <div className="flex flex-col items-start">
+          <div className="flex flex-wrap items-start">
             {Object.keys(subjects).map((subject) => (
-              <label key={subject} className="mb-2 flex items-center">
+              <label key={subject} className="mb-2 flex items-center mr-4">
                 <input
                   type="checkbox"
                   name={subject}
@@ -75,7 +75,7 @@ const ReEvaluation = () => {
         <div className="mb-4">
           <label className="block text-left mb-2 text-gray-700">QR Code for Payment:</label>
           <img
-            src="QR.jpg" 
+            src="QR.jpg" // Replace with the actual path to your QR code image
             alt="QR Code"
             className="border p-2 rounded w-full"
           />
