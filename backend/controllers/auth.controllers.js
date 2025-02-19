@@ -64,12 +64,19 @@ const studentLogin = asyncHandler(async (req, res) => {
     // Generate JWT Token
     const token = jwt.sign(
         {
+            id: student._id,
             prn: student.prn,
             role: "student",
         },
         process.env.JWT_SECRET,
         { expiresIn: "7d" }, // Token valid for 7 days
     );
+    res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
     res.status(200).json(
         createResponse("Login successful!", {
             token,
@@ -116,58 +123,58 @@ const registerFaculty = asyncHandler(async (req, res) => {
 });
 
 // Faculty Login
-const loginFaculty = async (req, res) => {
-    try {
-        const { username, password } = req.body;
-        const faculty = await Faculty.findOne({ username });
+const loginFaculty = asyncHandler(async (req, res) => {
+    const { email, password } = req.body;
+    const faculty = await Faculty.findOne({ email });
 
-        if (!faculty)
-            return res.status(400).json({ message: "Invalid credentials" });
+    if (!faculty) throw createError(400, "Invalid credentials");
 
-        const isMatch = await compareHash(password, faculty.password);
-        if (!isMatch)
-            return res.status(400).json({ message: "Invalid credentials" });
+    const isMatch = await compareHash(password, faculty.password);
+    if (!isMatch) throw createError(400, "Invalid credentials");
 
-        const token = jwt.sign({ id: faculty._id }, process.env.JWT_SECRET, {
-            expiresIn: "1h",
-        });
+    const token = jwt.sign(
+        {
+            id: faculty._id,
+            email: faculty.email,
+            role: faculty.role,
+        },
+        process.env.JWT_SECRET,
+        {
+            expiresIn: "7d", // Token valid for 7 days
+        },
+    );
 
-        // Set token in HTTP-only cookie
-        res.cookie("authToken", token, {
-            httpOnly: true, // Prevents JavaScript access
-            secure: process.env.NODE_ENV === "production", // Set true in production
-            sameSite: "Strict",
-            maxAge: 3600000, // 1 hour
-        });
+    // Set token in HTTP-only cookie
+    res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
 
-        res.json({
-            message: "Login successful",
-            user: { id: faculty._id, name: faculty.name, role: faculty.role },
-        });
-    } catch (error) {
-        res.status(500).json({ message: "Server Error", error: error.message });
-    }
-};
+    return res.status(200).json(
+        createResponse("Login successful!", {
+            token,
+            faculty: {
+                id: faculty._id,
+                name: faculty.name,
+                email: faculty.email,
+                role: faculty.role,
+            },
+        }),
+    );
+});
 
 // Logout Faculty
-const logoutFaculty = async (req, res) => {
-    res.clearCookie("authToken");
-    res.json({ message: "Logout successful" });
-};
+const logout = asyncHandler(async (req, res) => {
+    res.clearCookie("token");
+    res.status(200).json(createResponse("Logout successful"));
+});
 
-// Get Faculty Profile
-const getFacultyProfile = async (req, res) => {
-    res.json(req.user);
+module.exports = {
+    studentRegister,
+    studentLogin,
+    registerFaculty,
+    loginFaculty,
+    logout,
 };
-
-// Get All Faculty (Admin Only)
-const getAllFaculty = async (req, res) => {
-    try {
-        const facultyList = await Faculty.find().select("-password");
-        res.json(facultyList);
-    } catch (error) {
-        res.status(500).json({ message: "Server Error", error: error.message });
-    }
-};
-
-module.exports = { studentRegister, studentLogin };

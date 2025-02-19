@@ -4,8 +4,6 @@ const Role = {
     CASHIER: "cashier",
 };
 
-
 module.exports = {
     Role,
-
 };

@@ -3,23 +3,27 @@ const {
     studentLogin,
     studentRegister,
 } = require("../controllers/auth.controllers");
-const { authMiddleware } = require("../middlewares/auth.middlewares");
+const { verifyToken } = require("../middlewares/auth.middlewares");
 const {
     registerFaculty,
     loginFaculty,
-    getFacultyProfile,
+
+    logout,
+} = require("../controllers/auth.controllers");
+
+const {
     getAllFaculty,
-    logoutFaculty,
-} = require("../controllers/authcontrollers");
+    getFacultyProfile,
+} = require("../controllers/faculty.controllers");
 const router = express.Router();
 
-router.post("/student-register", studentRegister);
-router.post("/student-login", studentLogin);
+router.post("/student/register", studentRegister);
+router.post("/student/login", studentLogin);
 
 router.post("/faculty/register", registerFaculty);
 router.post("/faculty/login", loginFaculty);
-router.post("/faculty/logout", logoutFaculty);
-router.get("/faculty/profile", authMiddleware, getFacultyProfile);
-router.get("/faculty/all", authMiddleware, getAllFaculty);
+router.post("/faculty/logout", logout);
+router.get("/faculty/profile", verifyToken, getFacultyProfile);
+router.get("/faculty/all", verifyToken, getAllFaculty);
 
 module.exports = router;
