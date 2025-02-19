@@ -1,4 +1,5 @@
 const Student = require("../models/student.model");
+const Faculty = require("../models/faculty.model");
 const asyncHandler = require("../utils/asyncHandler");
 const { createError, createResponse } = require("../utils/responseHandler");
 const jwt = require("jsonwebtoken");
@@ -84,5 +85,89 @@ const studentLogin = asyncHandler(async (req, res) => {
         }),
     );
 });
+
+// Register Faculty
+const registerFaculty = asyncHandler(async (req, res) => {
+    const { name, email, username, password, department, role } = req.body;
+    const existingUser = await Faculty.findOne({ email });
+
+    if (existingUser) {
+        throw createError(400, "Email already in use");
+    }
+
+    const newFaculty = await Faculty.create({
+        name,
+        email,
+        username,
+        password,
+        department,
+        role,
+    });
+
+    res.status(201).json(
+        createResponse("Faculty registered successfully", {
+            name: newFaculty.name,
+            email: newFaculty.email,
+            username: newFaculty.username,
+            department: newFaculty.department,
+            role: newFaculty.role,
+        }),
+    );
+});
+
+// Faculty Login
+const loginFaculty = async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        const faculty = await Faculty.findOne({ username });
+
+        if (!faculty)
+            return res.status(400).json({ message: "Invalid credentials" });
+
+        const isMatch = await compareHash(password, faculty.password);
+        if (!isMatch)
+            return res.status(400).json({ message: "Invalid credentials" });
+
+        const token = jwt.sign({ id: faculty._id }, process.env.JWT_SECRET, {
+            expiresIn: "1h",
+        });
+
+        // Set token in HTTP-only cookie
+        res.cookie("authToken", token, {
+            httpOnly: true, // Prevents JavaScript access
+            secure: process.env.NODE_ENV === "production", // Set true in production
+            sameSite: "Strict",
+            maxAge: 3600000, // 1 hour
+        });
+
+        res.json({
+            message: "Login successful",
+            user: { id: faculty._id, name: faculty.name, role: faculty.role },
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Server Error", error: error.message });
+    }
+};
+
+// Logout Faculty
+const logoutFaculty = async (req, res) => {
+    res.clearCookie("authToken");
+    res.json({ message: "Logout successful" });
+};
+
+// Get Faculty Profile
+const getFacultyProfile = async (req, res) => {
+    res.json(req.user);
+};
+
+// Get All Faculty (Admin Only)
+const getAllFaculty = async (req, res) => {
+    try {
+        const facultyList = await Faculty.find().select("-password");
+        res.json(facultyList);
+    } catch (error) {
+        res.status(500).json({ message: "Server Error", error: error.message });
+    }
+};
 
 module.exports = { studentRegister, studentLogin };

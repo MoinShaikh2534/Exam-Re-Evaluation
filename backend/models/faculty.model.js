@@ -2,7 +2,6 @@ const mongoose = require("mongoose");
 const { hash } = require("../utils/hash");
 
 const FacultySchema = new mongoose.Schema({
-    
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     username: { type: String, required: true, unique: true },

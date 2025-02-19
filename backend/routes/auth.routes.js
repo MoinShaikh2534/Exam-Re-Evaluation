@@ -3,7 +3,7 @@ const {
     studentLogin,
     studentRegister,
 } = require("../controllers/auth.controllers");
-const { authMiddleware } = require("../middlewares/authMiddlewares");
+const { authMiddleware } = require("../middlewares/auth.middlewares");
 const {
     registerFaculty,
     loginFaculty,
