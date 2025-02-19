@@ -6,6 +6,7 @@ const path = require("path");
 require("dotenv").config();
 const errorHandler = require("./utils/errorHandler");
 
+const authRoutes = require("./routes/auth.routes");
 const app = express();
 
 const corsOptions = {
@@ -24,6 +25,7 @@ app.get("/", (req, res) => {
     res.send("Welcome to Exam Re-evaluation System");
 });
 
+app.use("/auth", authRoutes);
 app.use(errorHandler);
 
 module.exports = app;

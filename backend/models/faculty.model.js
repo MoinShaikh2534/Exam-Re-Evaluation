@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const Faculty = new mongoose.Schema({
+const FacultySchema = new mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
@@ -8,4 +8,4 @@ const Faculty = new mongoose.Schema({
     role: { type: String, enum: ["faculty", "cashier"], required: true },
 });
 
-module.exports = { Faculty };
+module.exports = mongoose.model("Faculty", FacultySchema);
