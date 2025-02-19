@@ -1,41 +1,17 @@
-const express = require("express");
-const cors = require("cors");
-const cookieParser = require("cookie-parser");
-
-require("dotenv").config();
-const errorHandler = require("./utils/errorHandler");
-const config = require("./config/appConfig");
+const app = require("./app");
 const connectDB = require("./db/connection");
-const path = require("path");
+const config = require("./config/appConfig");
 
-const app = express();
-const corsOptions = {
-    origin: ["http://localhost:5174", "http://localhost:5173"],
-    credentials: true,
-};
-
+// Connect to MongoDB
 connectDB(config.mongodbUri)
     .then(() => {
-        console.log("MongoDB connection successfull!");
+        console.log("✅ MongoDB connection successful!");
     })
     .catch((error) => {
-        console.log("server service :: connectDB :: error : ", error);
-        console.log("MongoDB connection failed!!!!!");
+        console.error("❌ MongoDB connection failed!", error);
     });
 
-app.use(cors(corsOptions));
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, "public")));
-
-app.get("/", (req, res) => {
-    console.log("new connection");
-    res.send("welcome to exam re-evaluation system");
-});
-
-app.use(errorHandler);
 const PORT = config.port || 3000;
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`🚀 Server is running on port ${PORT}`);
 });
