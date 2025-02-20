@@ -78,11 +78,9 @@ const downloadAnswerSheet = asyncHandler(async (req, res, next) => {
         throw createError(404, "File not found on server.");
     }
 
-        res.download(answerSheet.pdfPath, answerSheet.fileUniqueName);
-    } catch (error) {
-        next(error);
-    }
-};
+    res.download(answerSheet.pdfPath, answerSheet.fileUniqueName);
+});
+
 
 const calculateTotalMarks = async (req, res, next) => {
     try {
