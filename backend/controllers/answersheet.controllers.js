@@ -68,6 +68,95 @@ const downloadAnswerSheet = async (req, res, next) => {
     }
 };
 
+const calculateTotalMarks = async (req, res, next) => {
+    try {
+        const { studentId } = req.params;
+
+        const answerSheets = await AnswerSheet.find({ student: studentId });
+
+        if (!answerSheets || answerSheets.length === 0) {
+            throw createError(404, "No answer sheets found for the student.");
+        }
+
+        let totalObtained = 0, totalMaxMarks = 0;
+        let reevaluatedTotal = 0, reevaluatedMaxMarks = 0;
+        let subjectWiseMarks = [];
+
+        answerSheets.forEach(sheet => {
+            let subjectObtained = sheet.totalObtained || 0;
+            let subjectMaxMarks = sheet.totalMaxMarks || 0;
+            let subjectReevalObtained = sheet.reevaluatedTotal || subjectObtained;
+            let subjectReevalMaxMarks = sheet.totalMaxMarks;
+
+            // Accumulate total marks
+            totalObtained += subjectObtained;
+            totalMaxMarks += subjectMaxMarks;
+            reevaluatedTotal += subjectReevalObtained;
+            reevaluatedMaxMarks += subjectReevalMaxMarks;
+
+            subjectWiseMarks.push({
+                subjectCode: sheet.subject.code,
+                subjectName: sheet.subject.name,
+                obtainedMarks: subjectObtained,
+                maxMarks: subjectMaxMarks,
+                reevaluatedMarks: subjectReevalObtained,
+                reevaluated: sheet.reevaluated,
+            });
+        });
+
+        // Determine pass/fail status (assuming 40% passing criteria)
+        const passPercentage = 40;
+        const isPassed = (reevaluatedTotal / totalMaxMarks) * 100 >= passPercentage;
+
+        return res.status(200).json(
+            createResponse("Student result calculated successfully", {
+                studentId,
+                totalObtained,
+                totalMaxMarks,
+                reevaluatedTotal,
+                reevaluatedMaxMarks,
+                passStatus: isPassed ? "Passed" : "Failed",
+                subjectWiseMarks,
+            })
+        );
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Middleware to update total marks in the database
+const updateTotalMarks = async (req, res, next) => {
+    try {
+        const { fileUniqueName } = req.params;
+        const answerSheet = await AnswerSheet.findOne({ fileUniqueName });
+
+        if (!answerSheet) {
+            throw createError(404, "Answer sheet not found.");
+        }
+
+        // Calculate total obtained and max marks
+        let totalObtained = 0, totalMaxMarks = 0;
+        answerSheet.questionMarks.forEach(q => {
+            totalObtained += q.marksObtained;
+            totalMaxMarks += q.maxMarks;
+        });
+
+        // Save to database
+        answerSheet.totalObtained = totalObtained;
+        answerSheet.totalMaxMarks = totalMaxMarks;
+        await answerSheet.save();
+
+        return res.status(200).json(
+            createResponse("Total marks updated successfully", {
+                fileUniqueName,
+                totalObtained,
+                totalMaxMarks,
+            })
+        );
+    } catch (error) {
+        next(error);
+    }
+};
  
 
 
@@ -96,4 +185,4 @@ const deleteAnswerSheet = async (req, res, next) => {
     }
 };
 
-module.exports = { uploadAnswerSheet, downloadAnswerSheet, deleteAnswerSheet };
+module.exports = { uploadAnswerSheet, downloadAnswerSheet, deleteAnswerSheet,calculateTotalMarks,updateTotalMarks };
