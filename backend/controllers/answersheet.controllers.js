@@ -50,8 +50,8 @@ const uploadAnswerSheet = async (req, res, next) => {
 // Download Answer Sheet (PDF)
 const downloadAnswerSheet = async (req, res, next) => {
     try {
-        const { id } = req.params;
-        const answerSheet = await AnswerSheet.findById(id);
+        const { fileUniqueName } = req.params;
+        const answerSheet = await AnswerSheet.findOne({ fileUniqueName });
 
         if (!answerSheet) {
             throw createError(404, "Answer sheet not found.");
@@ -68,7 +68,10 @@ const downloadAnswerSheet = async (req, res, next) => {
     }
 };
 
-// Delete Answer Sheet (Optional)
+ 
+
+
+// Delete Answer Sheet (Optional) 
 const deleteAnswerSheet = async (req, res, next) => {
     try {
         const { id } = req.params;
