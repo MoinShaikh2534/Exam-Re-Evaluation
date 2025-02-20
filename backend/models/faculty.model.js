@@ -11,14 +11,6 @@ const FacultySchema = new mongoose.Schema({
 });
 
 // Hash password before saving
-FacultySchema.pre("save", async function (next) {
-    if (!this.isModified("password")) return next();
-    try {
-        this.password = await hash(this.password);
-        next();
-    } catch (error) {
-        next(error);
-    }
-});
+ 
 
 module.exports = mongoose.model("Faculty", FacultySchema);

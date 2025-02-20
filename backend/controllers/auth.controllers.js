@@ -96,17 +96,24 @@ const studentLogin = asyncHandler(async (req, res) => {
 // Register Faculty
 const registerFaculty = asyncHandler(async (req, res) => {
     const { name, email, username, password, department, role } = req.body;
-    const existingUser = await Faculty.findOne({ email });
 
-    if (existingUser) {
-        throw createError(400, "Email already in use");
+    if (!name || !email || !username || !password || !department || !role) {
+        throw createError(400, "All fields are required.");
     }
+
+    const existingUser = await Faculty.findOne({ $or: [{ email }, { username }] });
+    if (existingUser) {
+        throw createError(400, "Email or username already in use.");
+    }
+
+    // Hash the password before saving
+    const hashedPassword = await hash(password);
 
     const newFaculty = await Faculty.create({
         name,
         email,
         username,
-        password,
+        password: hashedPassword,
         department,
         role,
     });
