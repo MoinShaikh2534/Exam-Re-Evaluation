@@ -7,6 +7,10 @@ const AnswerSheetSchema = new Schema({
         ref: "Student",
         required: true,
     },
+    fileUniqueName: {
+        type: String,
+        required: true,
+    },
     assignedFaculty: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Faculty",

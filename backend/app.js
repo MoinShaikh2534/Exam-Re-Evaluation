@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const path = require("path");
-
+const answersheetRoutes = require("./routes/answersheet.routes");
 require("dotenv").config();
 const errorHandler = require("./utils/errorHandler");
 
@@ -12,7 +12,7 @@ const app = express();
 const corsOptions = {
     origin: ["http://localhost:5174", "http://localhost:5173"],
     credentials: true,
-};   
+};
 
 app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: false }));
@@ -26,6 +26,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/auth", authRoutes);
+app.use("/answersheet", answersheetRoutes);
 app.use(errorHandler);
 
 module.exports = app;
